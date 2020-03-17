@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 
 import { isNonEmptyArray } from '../utilities/common/arrays';
+import { Cache } from '../core';
 
 export function isApolloError(err: Error): err is ApolloError {
   return err.hasOwnProperty('graphQLErrors');
@@ -26,15 +27,24 @@ const generateErrorMessage = (err: ApolloError) => {
     message += 'Network error: ' + err.networkError.message + '\n';
   }
 
+  if (isNonEmptyArray(err.cacheErrors)) {
+    message += 'Missing cache fields: ' +
+      err.cacheErrors.map(e => e.path.join('.')).join(', ') + '\n' +
+      'Examine error.cacheErrors for more details.\n';
+  }
+
   // strip newline from the end of the message
   message = message.replace(/\n$/, '');
   return message;
 };
 
+type CacheErrorsType = Cache.DiffResult<any>["missing"];
+
 export class ApolloError extends Error {
   public message: string;
   public graphQLErrors: ReadonlyArray<GraphQLError>;
   public networkError: Error | null;
+  public cacheErrors: CacheErrorsType;
 
   // An object that can be used to provide some additional information
   // about an error, e.g. specifying the type of error this is. Used
@@ -47,17 +57,20 @@ export class ApolloError extends Error {
   constructor({
     graphQLErrors,
     networkError,
+    cacheErrors,
     errorMessage,
     extraInfo,
   }: {
     graphQLErrors?: ReadonlyArray<GraphQLError>;
     networkError?: Error | null;
+    cacheErrors?: CacheErrorsType;
     errorMessage?: string;
     extraInfo?: any;
   }) {
     super(errorMessage);
     this.graphQLErrors = graphQLErrors || [];
     this.networkError = networkError || null;
+    this.cacheErrors = cacheErrors || [];
 
     if (!errorMessage) {
       this.message = generateErrorMessage(this);

@@ -2108,6 +2108,26 @@ describe('QueryManager', () => {
             networkStatus: NetworkStatus.ready,
           });
         },
+      ).then(
+        fail,
+        (expectedError: ApolloError) => {
+          expect(expectedError.message).toEqual([
+            "Missing cache fields: author.name.lastName, author.age",
+            "Examine error.cacheErrors for more details.",
+          ].join("\n"));
+
+          expect(expectedError.cacheErrors).toEqual([{
+            message: [
+              "Can't find field 'lastName' on object {",
+              '  "firstName": "John"',
+              "}",
+            ].join("\n"),
+            path: ["author", "name", "lastName"],
+          }, {
+            message: "Can't find field 'age' on Author__197 object",
+            path: ["author", "age"],
+          }]);
+        },
       ),
       observableToPromise(
         {

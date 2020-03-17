@@ -1,5 +1,6 @@
 import { ExecutionResult, DocumentNode } from 'graphql';
 import { invariant, InvariantError } from 'ts-invariant';
+import equal from '@wry/equality';
 
 import { ApolloLink } from '../link/core/ApolloLink';
 import { execute } from '../link/core/execute';
@@ -571,8 +572,11 @@ export class QueryManager<TStore> {
 
         observer.next(result);
 
-      } else {
-        // TODO Warn in this case, or call observer.error?
+      } else if (isNonEmptyArray(diff.missing) &&
+                 !equal(diff.result, {})) {
+        observer.error(new ApolloError({
+          cacheErrors: diff.missing,
+        }));
       }
     };
   }
