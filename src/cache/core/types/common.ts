@@ -5,6 +5,8 @@ import {
   Reference
 } from '../../../utilities/graphql/storeUtils';
 
+import { maybeDeepFreeze } from '../../../utilities/common/maybeDeepFreeze';
+
 import { ToReferenceFunction } from '../../inmemory/entityStore';
 
 // The Readonly<T> type only really works for object types, since it marks
@@ -30,4 +32,13 @@ export type Modifier<T> = (value: T, details: {
 
 export type Modifiers = {
   [fieldName: string]: Modifier<any>;
+}
+
+export class MissingFieldError {
+  constructor(
+    public readonly message: string,
+    public readonly path: (string | number)[],
+  ) {
+    maybeDeepFreeze(this);
+  }
 }

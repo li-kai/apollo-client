@@ -6,6 +6,7 @@ import { Policies } from '../policies';
 import { StoreObject } from '../types';
 import { ApolloCache } from '../../core/cache';
 import { Reference } from '../../../utilities/graphql/storeUtils';
+import { MissingFieldError } from '../..';
 
 describe('EntityStore', () => {
   it('should support result caching if so configured', () => {
@@ -1065,6 +1066,13 @@ describe('EntityStore', () => {
       result: {
         authorOfBook: tedWithoutHobby,
       },
+      missing: [{
+        message: 'Can\'t find field \'hobby\' on Author:{"name":"Ted Chiang"} object',
+        path: ["authorOfBook", "hobby"],
+      }, {
+        message: 'Can\'t find field \'publisherOfBook\' on ROOT_QUERY object',
+        path: ["publisherOfBook"],
+      }],
     });
 
     cache.evict("ROOT_QUERY", "authorOfBook");
@@ -1296,12 +1304,18 @@ describe('EntityStore', () => {
 
     expect(cache.evict(authorId)).toBe(false);
 
+    const missing = [{
+      message: "Dangling reference to missing Author:2 object",
+      path: ["book", "author"],
+    }];
+
     expect(cache.diff({
       query,
       optimistic: true,
       returnPartialData: true,
     })).toEqual({
       complete: false,
+      missing,
       result: {
         book: {
           __typename: "Book",
@@ -1331,6 +1345,7 @@ describe('EntityStore', () => {
       returnPartialData: true,
     })).toEqual({
       complete: false,
+      missing,
       result: {
         book: {
           __typename: "Book",
@@ -1553,6 +1568,10 @@ describe('EntityStore', () => {
           isbn: "031648637X",
         },
       },
+      missing: [{
+        message: 'Can\'t find field \'title\' on Book:{"isbn":"031648637X"} object',
+        path: ["book", "title"],
+      }],
     });
 
     expect(cache.extract()).toEqual({

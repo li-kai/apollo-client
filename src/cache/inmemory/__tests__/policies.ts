@@ -3,6 +3,7 @@ import gql from "graphql-tag";
 import { InMemoryCache } from "../inMemoryCache";
 import { Policies } from "../policies";
 import { Reference, StoreObject } from "../../../core";
+import { MissingFieldError } from "../..";
 
 function reverse(s: string) {
   return s.split("").reverse().join("");
@@ -1013,6 +1014,16 @@ describe("type policies", function () {
           }],
         },
         complete: false,
+        missing: [{
+          message: 'Can\'t find field \'result\' on Job:{"name":"Job #1"} object',
+          path: ["jobs", 0, "result"],
+        }, {
+          message: 'Can\'t find field \'result\' on Job:{"name":"Job #2"} object',
+          path: ["jobs", 1, "result"],
+        }, {
+          message: 'Can\'t find field \'result\' on Job:{"name":"Job #3"} object',
+          path: ["jobs", 2, "result"],
+        }],
       });
 
       function setResult(jobNum: number) {
@@ -1058,6 +1069,13 @@ describe("type policies", function () {
           }],
         },
         complete: false,
+        missing: [{
+          message: 'Can\'t find field \'result\' on Job:{"name":"Job #1"} object',
+          path: ["jobs", 0, "result"],
+        }, {
+          message: 'Can\'t find field \'result\' on Job:{"name":"Job #3"} object',
+          path: ["jobs", 2, "result"],
+        }],
       });
 
       cache.writeQuery({
@@ -1111,6 +1129,13 @@ describe("type policies", function () {
           }],
         },
         complete: false,
+        missing: [{
+          message: 'Can\'t find field \'result\' on Job:{"name":"Job #1"} object',
+          path: ["jobs", 0, "result"],
+        }, {
+          message: 'Can\'t find field \'result\' on Job:{"name":"Job #3"} object',
+          path: ["jobs", 2, "result"],
+        }],
       });
 
       setResult(1);
